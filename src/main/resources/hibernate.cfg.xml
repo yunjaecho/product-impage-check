@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE hibernate-configuration PUBLIC
+        "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+    <session-factory>
+        <property name="hibernate.bytecode.use_reflection_optimizer">false</property>
+        <property name="hibernate.connection.driver_class">com.tmax.tibero.jdbc.TbDriver</property>
+        <property name="hibernate.connection.url">jdbc:tibero:thin:@192.168.100.128:8629:tibero</property>
+        <property name="hibernate.connection.username">posmall</property>
+        <property name="hibernate.connection.password">posmall</property>
+        <property name="hibernate.dialect">org.hibernate.dialect.Oracle10gDialect</property>
+        <property name="show_sql">true</property>
+    </session-factory>
+</hibernate-configuration>
