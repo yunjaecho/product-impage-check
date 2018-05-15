@@ -109,13 +109,14 @@ object MainApp extends App {
           conn.commit()
         })
 
-        // Executors shutdown
-        if(count.incrementAndGet() == imageList.size()) {
-          pool.shutdown()
+      }
 
-          session.close
-          HibernateUtil.shutdown
-        }
+      // Executors shutdown
+      if(count.incrementAndGet() == imageList.size()) {
+        pool.shutdown()
+
+        session.close
+        HibernateUtil.shutdown
       }
 
 
