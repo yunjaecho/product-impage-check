@@ -1,10 +1,12 @@
 package com.yunjae.imageCheck.app
 
+import java.sql.{Connection, PreparedStatement}
 import java.util
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
 
 import com.yunjae.imageCheck.config.HibernateUtil
+import org.hibernate.engine.spi.SessionImplementor
 import org.hibernate.Session
 import scalaj.http.{Http, HttpOptions}
 
@@ -12,6 +14,10 @@ import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
 
 object MainApp extends App {
+
+  var session: Session = null
+
+  var conn: Connection = null
 
   val executionContext = ExecutionContext
 
@@ -22,7 +28,8 @@ object MainApp extends App {
 
   val imageList = getImageList()
 
-  imageList.forEach(path => getUrlStatus(path))
+  imageList
+    .forEach(path => getUrlStatus(path))
 
   /**
     * 상품 이미지 데이터 조회
@@ -57,20 +64,22 @@ object MainApp extends App {
                        |  WHERE RANK_NO = 1
                        |  ORDER BY TO_NUMBER(CONTENT_FILE_ID) DESC """.stripMargin
 
-    var session: Session = null
+
     var list: util.List[_] = null
 
 
     try {
       session = HibernateUtil.getSessionFactory.openSession()
+      conn = (session.asInstanceOf[SessionImplementor]).getJdbcConnectionAccess.obtainConnection()
+
       val sqlQuery = session.createSQLQuery(selectSql)
       list = sqlQuery.list
     } catch {
       case ex: Exception =>
         println(ex.getStackTrace)
     } finally  {
-      session.close
-      HibernateUtil.shutdown
+      //session.close
+      //HibernateUtil.shutdown
     }
 
     list
@@ -91,12 +100,25 @@ object MainApp extends App {
 
       if (response.code != 200) {
         println(data._1  + "\t" + data._2 + "\t" + data._3 + "\t" + data._4+ "\t" + data._5)
+
+        val updateSql = s"UPDATE TB_GOODS SET GD_STATE_CD ='G0106' , UP_NO = 99999 , UP_DT = SYSDATE WHERE GD_MST_NO = '${data._5}'"
+        println(updateSql)
+
+        session.doWork(conn => {
+          conn.prepareStatement(updateSql).executeUpdate()
+          conn.commit()
+        })
+
+        // Executors shutdown
+        if(count.incrementAndGet() == imageList.size()) {
+          pool.shutdown()
+
+          session.close
+          HibernateUtil.shutdown
+        }
       }
 
-      // Executors shutdown
-      if(count.getAndAdd(1) == imageList.size() -1) {
-        pool.shutdown()
-      }
+
     }
   }
 
@@ -131,6 +153,7 @@ object MainApp extends App {
         (String.valueOf(a), String.valueOf(b), String.valueOf(c), String.valueOf(d), String.valueOf(e))
     }
   }
+
 
 }
 
