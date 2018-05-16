@@ -17,7 +17,7 @@ object MainApp extends App {
 
   var session: Session = null
 
-  var conn: Connection = null
+  //var conn: Connection = null
 
   val executionContext = ExecutionContext
 
@@ -70,7 +70,7 @@ object MainApp extends App {
 
     try {
       session = HibernateUtil.getSessionFactory.openSession()
-      conn = (session.asInstanceOf[SessionImplementor]).getJdbcConnectionAccess.obtainConnection()
+      //conn = (session.asInstanceOf[SessionImplementor]).getJdbcConnectionAccess.obtainConnection()
 
       val sqlQuery = session.createSQLQuery(selectSql)
       list = sqlQuery.list
